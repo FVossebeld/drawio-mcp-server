@@ -427,6 +427,17 @@ The Draw.io MCP server provides the following tools for programmatic diagram int
 - **`list-paged-model`**
   Retrieves a paginated view of all cells (vertices and edges) in the current Draw.io diagram. This tool provides access to the complete model data with essential fields only, sanitized to remove circular dependencies and excessive data. It allows to filter based on multiple criteria and attribute boolean logic. Useful for programmatic inspection of diagram structure without overwhelming response sizes.
 
+### Diagram Export Tools
+- **`export-png`**
+  Exports the active page as a PNG image
+  *Parameters*:
+    - `scale`: Scale factor for rasterization (default: 1)
+    - `background`: Optional background color (omit for transparent)
+    - `transparent`: Preserve transparency (default: true)
+    - `dpi`: Optional DPI for rasterization
+    - `region`: Optional `{ x, y, width, height }` crop region
+  *Returns*: Base64-encoded PNG image data
+
 ### Diagram Modification Tools
 - **`add-rectangle`**
   Creates a new rectangle shape on the active Draw.io page with customizable properties:

@@ -20,7 +20,7 @@ import {
   Context,
 } from "./types.js";
 import { create_bus } from "./emitter_bus.js";
-import { default_tool } from "./tool.js";
+import { default_tool, png_tool } from "./tool.js";
 import { nanoid_id_generator } from "./nanoid_id_generator.js";
 import { create_logger as create_console_logger } from "./mcp_console_logger.js";
 import {
@@ -509,6 +509,46 @@ server.tool(
       .default({}),
   },
   default_tool(TOOL_list_paged_model, context),
+);
+
+const TOOL_export_png = "export-png";
+server.tool(
+  TOOL_export_png,
+  "Exports the active Draw.io page as a PNG image. Returns base64-encoded PNG data.",
+  {
+    scale: z
+      .number()
+      .optional()
+      .describe("Scale factor to apply when rendering the PNG (1 = 100%)")
+      .default(1),
+    background: z
+      .string()
+      .optional()
+      .describe(
+        "Background color for the export (e.g., '#ffffff'). Omit for transparent background.",
+      ),
+    transparent: z
+      .boolean()
+      .optional()
+      .describe("Whether to preserve transparent background areas")
+      .default(true),
+    dpi: z
+      .number()
+      .optional()
+      .describe("DPI to use when rasterizing the diagram"),
+    region: z
+      .object({
+        x: z.number().describe("X coordinate of the export region"),
+        y: z.number().describe("Y coordinate of the export region"),
+        width: z.number().describe("Width of the export region"),
+        height: z.number().describe("Height of the export region"),
+      })
+      .optional()
+      .describe(
+        "Optional region of the diagram to export instead of the full page",
+      ),
+  },
+  png_tool(TOOL_export_png, context),
 );
 
 const TOOL_list_layers = "list-layers";

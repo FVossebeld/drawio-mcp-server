@@ -66,3 +66,38 @@ export function default_tool(name: string, context: Context) {
 
   return fn;
 }
+
+export function png_tool(name: string, context: Context) {
+  const fn = build_channel(context, name, (reply) => {
+    const base64 =
+      typeof reply === "string"
+        ? reply
+        : reply?.data ?? reply?.base64 ?? reply?.png_base64 ?? reply?.png;
+    if (typeof base64 !== "string" || base64.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(reply),
+          },
+        ],
+      };
+    }
+
+    const mimeType =
+      typeof reply === "object" && reply?.mimeType
+        ? reply.mimeType
+        : "image/png";
+    return {
+      content: [
+        {
+          type: "image",
+          data: base64,
+          mimeType,
+        },
+      ],
+    };
+  });
+
+  return fn;
+}
