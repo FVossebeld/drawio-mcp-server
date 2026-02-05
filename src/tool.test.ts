@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { build_channel, default_tool, Handler } from "./tool.js";
+import { build_channel, default_tool, png_tool, Handler } from "./tool.js";
 import { Bus, BusListener, Context, IdGenerator, Logger } from "./types.js";
 import {
   CallToolResult,
@@ -149,6 +149,81 @@ describe("default_tool", () => {
     expect(mockBus.send_to_extension).toHaveBeenCalledWith({
       __event: toolName,
       __request_id: "789",
+    });
+  });
+});
+
+describe("png_tool", () => {
+  let mockBus: jest.Mocked<Bus>;
+  let mockIdGenerator: { generate: jest.Mock<() => string> };
+  const log = create_logger();
+  let context: Context;
+  const pngBase64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/xcAAt8B9kN7pE0AAAAASUVORK5CYII=";
+
+  beforeEach(() => {
+    mockBus = {
+      send_to_extension: jest.fn(),
+      on_reply_from_extension: jest.fn((_, callback: BusListener<unknown>) => {
+        callback({
+          data: pngBase64,
+          mimeType: "image/png",
+        });
+      }),
+    } as unknown as jest.Mocked<Bus>;
+
+    mockIdGenerator = {
+      generate: jest.fn<() => string>().mockReturnValue("987"),
+    };
+
+    context = {
+      bus: mockBus,
+      id_generator: mockIdGenerator,
+      log,
+    };
+  });
+
+  it("should return image content for PNG base64 data", async () => {
+    const tool = png_tool("export-png", context);
+
+    const result = await tool(
+      {},
+      {} as RequestHandlerExtra<ServerRequest, ServerNotification>,
+    );
+
+    expect(result).toEqual({
+      content: [
+        {
+          type: "image",
+          data: pngBase64,
+          mimeType: "image/png",
+        },
+      ],
+    });
+    const buffer = Buffer.from(pngBase64, "base64");
+    expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+  });
+
+  it("should return text content for non-PNG data", async () => {
+    mockBus.on_reply_from_extension.mockImplementation(
+      ((_: string, callback: BusListener<{ data: string }>) => {
+        callback({ data: "aGVsbG8=" });
+      }) as Bus["on_reply_from_extension"],
+    );
+    const tool = png_tool("export-png", context);
+
+    const result = await tool(
+      {},
+      {} as RequestHandlerExtra<ServerRequest, ServerNotification>,
+    );
+
+    expect(result).toEqual({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ data: "aGVsbG8=" }),
+        },
+      ],
     });
   });
 });

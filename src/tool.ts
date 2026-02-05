@@ -7,6 +7,8 @@ import {
 import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { strip_internal_fields } from "./events.js";
 
+const PNG_SIGNATURE_HEX = "89504e470d0a1a0a";
+
 export type Handler = (reply_payload: any) => CallToolResult;
 export type ToolFn<S> = (
   args: S,
@@ -62,6 +64,53 @@ export function default_tool(name: string, context: Context) {
       ],
     };
     return response;
+  });
+
+  return fn;
+}
+
+export function png_tool(name: string, context: Context) {
+  const fn = build_channel(context, name, (reply) => {
+    const base64 = typeof reply === "string" ? reply : reply?.data;
+    if (typeof base64 !== "string" || base64.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(reply),
+          },
+        ],
+      };
+    }
+
+    const buffer = Buffer.from(base64, "base64");
+    const isPng =
+      buffer.length >= 8 &&
+      buffer.subarray(0, 8).toString("hex") === PNG_SIGNATURE_HEX;
+    if (!isPng) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(reply),
+          },
+        ],
+      };
+    }
+
+    const mimeType =
+      typeof reply === "object" && reply?.mimeType
+        ? reply.mimeType
+        : "image/png";
+    return {
+      content: [
+        {
+          type: "image",
+          data: base64,
+          mimeType,
+        },
+      ],
+    };
   });
 
   return fn;
