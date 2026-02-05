@@ -525,12 +525,12 @@ server.tool(
       .string()
       .optional()
       .describe(
-        "Background color for the export (e.g., '#ffffff'). Omit for transparent background.",
+        "Background color for the export (e.g., '#ffffff'). When provided, transparency is disabled.",
       ),
     transparent: z
       .boolean()
       .optional()
-      .describe("Whether to preserve transparent background areas")
+      .describe("Whether to preserve transparent background areas when no background is set")
       .default(true),
     dpi: z
       .number()

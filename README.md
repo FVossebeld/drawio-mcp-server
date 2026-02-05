@@ -432,8 +432,8 @@ The Draw.io MCP server provides the following tools for programmatic diagram int
   Exports the active page as a PNG image
   *Parameters*:
     - `scale`: Scale factor for rasterization (default: 1)
-    - `background`: Optional background color (omit for transparent)
-    - `transparent`: Preserve transparency (default: true)
+    - `background`: Optional background color (disables transparency when set)
+    - `transparent`: Preserve transparency when no background is provided (default: true)
     - `dpi`: Optional DPI for rasterization
     - `region`: Optional `{ x, y, width, height }` crop region
   *Returns*: Base64-encoded PNG image data

@@ -203,4 +203,27 @@ describe("png_tool", () => {
     const buffer = Buffer.from(pngBase64, "base64");
     expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
   });
+
+  it("should return text content for non-PNG data", async () => {
+    mockBus.on_reply_from_extension.mockImplementation(
+      ((_: string, callback: BusListener<{ data: string }>) => {
+        callback({ data: "aGVsbG8=" });
+      }) as Bus["on_reply_from_extension"],
+    );
+    const tool = png_tool("export-png", context);
+
+    const result = await tool(
+      {},
+      {} as RequestHandlerExtra<ServerRequest, ServerNotification>,
+    );
+
+    expect(result).toEqual({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ data: "aGVsbG8=" }),
+        },
+      ],
+    });
+  });
 });
